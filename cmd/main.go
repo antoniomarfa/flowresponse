@@ -7,24 +7,23 @@ import (
 
 	"flowresponse/database"
 	"flowresponse/handles"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	// Cargar el archivo .env
-	dsn := os.Getenv("DSN")
+	/*
+		dsn := os.Getenv("DSN")
 
-	if dsn == "" {
-		err := godotenv.Load(".env")
+		if dsn == "" {
+			err := godotenv.Load(".env")
 
-		if err != nil {
-			log.Fatal("Error loading .env file")
+			if err != nil {
+				log.Fatal("Error loading .env file")
+			}
 		}
-	}
-
+	*/
 	// Acceder a las variables de entorno
-	dsn = os.Getenv("DSN")
+	dsn := os.Getenv("DSN")
 
 	db, err := database.GetDB(dsn)
 	if err != nil {
