@@ -13,13 +13,18 @@ import (
 
 func main() {
 	// Cargar el archivo .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error cargando el archivo .env")
+	dsn := os.Getenv("DSN")
+
+	if dsn == "" {
+		err := godotenv.Load(".env")
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
 
 	// Acceder a las variables de entorno
-	dsn := os.Getenv("DSN")
+	dsn = os.Getenv("DSN")
 
 	db, err := database.GetDB(dsn)
 	if err != nil {
