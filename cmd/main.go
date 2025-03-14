@@ -1,30 +1,33 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"flowresponse/database"
 	"flowresponse/handles"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	// Cargar el archivo .env
-	/*
-		dsn := os.Getenv("DSN")
 
-		if dsn == "" {
-			err := godotenv.Load(".env")
-
-			if err != nil {
-				log.Fatal("Error loading .env file")
-			}
-		}
-	*/
-	// Acceder a las variables de entorno
 	dsn := os.Getenv("DSN")
+	fmt.Println("dsn entrada ", dsn)
+	if dsn == "" {
+		err := godotenv.Load(".env")
+		fmt.Println("cargo el archivo env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
 
+	// Acceder a las variables de entorno
+	dsn = os.Getenv("DSN")
+	fmt.Println("nuevo dsn des env", dsn)
 	db, err := database.GetDB(dsn)
 	if err != nil {
 		log.Fatalf("Error al conectar a la base de datos: %v", err)
