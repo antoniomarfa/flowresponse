@@ -16,17 +16,19 @@ func main() {
 	// Cargar el archivo .env
 
 	dsn := os.Getenv("DSN")
+	ApiUrl := os.Getenv("APIURL")
+
 	fmt.Println("dsn entrada ", dsn)
-	if dsn == "" {
+	if ApiUrl == "" {
 		err := godotenv.Load(".env")
 		fmt.Println("cargo el archivo env")
 		if err != nil {
 			log.Fatal("Error loading .env file")
 		}
+		dsn = os.Getenv("DSN")
 	}
 
 	// Acceder a las variables de entorno
-	dsn = os.Getenv("DSN")
 	fmt.Println("nuevo dsn des env", dsn)
 	db, err := database.GetDB(dsn)
 	if err != nil {

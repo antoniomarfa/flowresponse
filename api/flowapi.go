@@ -20,16 +20,21 @@ func Flow(token string) models.TokenResponse {
 	status_servicio := "Ok"
 	error_servicio := "terminado correctamente"
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error cargando el archivo .env")
-		status_servicio = "No"
-		error_servicio = "Error cargando el archivo .env"
+	dsn := os.Getenv("DSN")
+	ApiUrl := os.Getenv("APIURL")
+
+	fmt.Println("dsn entrada api ", dsn)
+	if ApiUrl == "" {
+		err := godotenv.Load(".env")
+		fmt.Println("cargo el archivo env api")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		dsn = os.Getenv("DSN")
+		ApiUrl = os.Getenv("APIURL")
 	}
 
 	// Acceder a las variables de entorno
-	dsn := os.Getenv("DSN")
-	ApiUrl := os.Getenv("APIURL")
 
 	db, err := database.GetDB(dsn)
 	if err != nil {
