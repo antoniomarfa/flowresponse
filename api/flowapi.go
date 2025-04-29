@@ -51,37 +51,45 @@ func Flow(token string) models.TokenResponse {
 		error_servicio = "Error al obtener la instancia de *sql.DB "
 	}
 	defer sqlDB.Close() // Cerrar la conexión al finalizar
-
+	//----------------------
 	//Buscar el ingreso por token flow
 	var ingreso models.IngresoReq
+	maxRetries := 5
+	found := false
 
-	// Crea una consulta base
-	query := db.Model(&models.IngresoReq{})
-
-	// Aplica filtros si existen
-	query = query.Where("token_flow = ?", token)
-
-	query = query.Debug()
-
-	// Usa First para obtener un único registro
-	if err := query.First(&ingreso).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			fmt.Println("No se encontró ningún registro con el token proporcionado")
+	for i := 0; i < maxRetries; i++ {
+		err := db.Where("token_flow = ?", token).First(&ingreso).Error
+		if err == nil {
+			found = true
+			break
+		}
+		if err != gorm.ErrRecordNotFound {
+			fmt.Println("Error inesperado al buscar el ingreso:", err)
 			status_servicio = "No"
-			error_servicio = "No se encontró ningún registro con el token proporcionado "
-		} else {
-			fmt.Println("Error al buscar el ingreso:", err)
-			status_servicio = "No"
-			error_servicio = "Error al buscar el ingreso "
+			error_servicio = "Error inesperado al buscar el ingreso"
+			return models.TokenResponse{
+				Status:  status_servicio,
+				Message: error_servicio,
+			}
+		}
+		fmt.Printf("Intento %d/%d: ingreso no encontrado, esperando...\n", i+1, maxRetries)
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	if !found {
+		fmt.Println("No se encontró ingreso con el token tras varios intentos")
+		status_servicio = "No"
+		error_servicio = "Ingreso no encontrado tras varios intentos"
+		return models.TokenResponse{
+			Status:  status_servicio,
+			Message: error_servicio,
 		}
 	}
 
+	//---------------------
 	//con el company id del ingeso buscar las key de flow
 	var flowcon models.CompanyconResp
-
-	query = db.Model(&models.CompanyconResp{})
-	query = query.Where("company_id = ?", ingreso.CompanyId)
-	if err := query.First(&flowcon).Error; err != nil {
+	if err := db.Where("company_id = ?", ingreso.CompanyId).First(&flowcon).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			fmt.Println("No se encontró ningún registro con el company_id proporcionado")
 			status_servicio = "No"
@@ -124,33 +132,7 @@ func Flow(token string) models.TokenResponse {
 		error_servicio = "Error al convertir el body a JSON "
 		continuaOperacion = false
 	}
-	/*
-		// Deserializar el JSON en la estructura PaymentResponse
-		var paymentResponse models.PaymentResponse
-		err = json.Unmarshal(bodyJSON, &paymentResponse)
-		if err != nil {
-			fmt.Println("Error al deserializar el JSON:", err)
-			status_servicio = "No"
-			error_servicio = "Error al convertir el body a JSON "
-		}
 
-		continuaOperacion := true
-		// Verificar si paymentResponse está vacía
-		if len(bodyJSON) == 0 || string(bodyJSON) == "{}" || string(bodyJSON) == "null" {
-			fmt.Println("El JSON está vacío")
-			status_servicio = "No"
-			error_servicio = "El JSON está vacío"
-			continuaOperacion = false
-		}
-
-		// Verificar si paymentResponse está vacía
-		if paymentResponse == (models.PaymentResponse{}) {
-			fmt.Println("paymentResponse está vacía")
-			status_servicio = "No"
-			error_servicio = "paymentResponse está vacía"
-			continuaOperacion = false
-		}
-	*/
 	// Procesar la respuesta
 	if continuaOperacion {
 		status := paymentResponse.Status
@@ -172,7 +154,6 @@ func Flow(token string) models.TokenResponse {
 			fechaAuto := paymentResponse.RequestDate
 			tipoPago := "FW"
 			media := paymentResponse.PaymentData.Media
-			//		nroVta := paymentResponse.Optional.Venta
 			rutAl := paymentResponse.Optional.Alumno
 
 			fecha_Ingreso, err := time.Parse("2006-01-02", fechaIngreso)
