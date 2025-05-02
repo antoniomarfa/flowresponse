@@ -54,7 +54,7 @@ func Flow(token string) models.TokenResponse {
 	//----------------------
 	//Buscar el ingreso por token flow
 	var ingreso models.IngresoReq
-	maxRetries := 5
+	maxRetries := 7
 	found := false
 
 	for i := 0; i < maxRetries; i++ {
@@ -181,6 +181,7 @@ func Flow(token string) models.TokenResponse {
 			if ingreso.Nrocuotas > 0 {
 
 				fecha_inicial := ingreso.Fechainicial.Format("2006-01-02")
+				valorCuota := float64(ingreso.Valorcuota)
 				// Procesar cuotas
 				//	dia := fecha_inicial[8:10]
 				mes := fecha_inicial[5:7]
@@ -197,7 +198,7 @@ func Flow(token string) models.TokenResponse {
 						Rutalumn:      rutAl,
 						Transaccion:   transaccion,
 						Tipo:          tipoPago,
-						Monto:         montoIngreso,
+						Monto:         valorCuota,
 						Nrotarjeta:    "",
 						Codigoauto:    "",
 						Fechaauto:     fecha_Auto,
