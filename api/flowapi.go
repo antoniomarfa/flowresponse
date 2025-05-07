@@ -88,8 +88,8 @@ func Flow(token string) models.TokenResponse {
 
 	//---------------------
 	//con el company id del ingeso buscar las key de flow
-	var flowcon models.CompanyconResp
-	if err := db.Where("company_id = ?", ingreso.CompanyId).First(&flowcon).Error; err != nil {
+	var flowcon models.GatewaysResp
+	if err := db.Where("company_id = ? AND gateway_id = ?", ingreso.CompanyId, 3).First(&flowcon).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			fmt.Println("No se encontró ningún registro con el company_id proporcionado")
 			status_servicio = "No"
@@ -106,8 +106,8 @@ func Flow(token string) models.TokenResponse {
 
 	//Usar la instancia para pasar las keys
 	// Configurar FlowApi
-	api.SetApiKey(flowcon.ApikeyFlow)
-	api.SetSecretKey(flowcon.SecretkeyFlow)
+	api.SetApiKey(flowcon.AdditionalConfig.FlowAPIKey)
+	api.SetSecretKey(flowcon.AdditionalConfig.FlowSecretKey)
 	api.SetApiURL(ApiUrl)
 
 	// Parámetros para el método Send
